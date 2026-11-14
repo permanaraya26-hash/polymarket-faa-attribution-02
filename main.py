@@ -1,17 +1,17 @@
 """Forecast Polymarket Yes prices: per-market, recent-volatility mixture quantiles.
 
-Method (tuned on the 6 practice cases; local mean pinball 0.274 vs the house
+Method (tuned on the 6 practice cases; local mean pinball 0.273 vs the house
 baseline's 0.364):
   - Median stays at the checkpoint price (no drift: recent trends do not
     carry forward on these markets; drift variants all scored worse).
   - Spread comes from the market's own recent moves: sigma is the RMS of the
-    last 30 one-minute returns, floored at 0.0005 and capped at 0.005, and it
+    last 45 one-minute returns, floored at 0.0005 and capped at 0.005, and it
     grows with horizon as h**0.45 (slightly slower than a random walk's
     sqrt(h), which the practice data supports).
   - Prices mostly do not move minute to minute (~88% of minutes are flat),
     so the forecast is a mixture: with probability p(h) = f**h the price has
     not moved at all by minute h, where f is the share of flat minutes in
-    the last 30 (capped at 0.98 so no market is ever declared frozen); with
+    the last 45 (capped at 0.99 so no market is ever declared frozen); with
     probability 1 - p(h) it moves normally with the sigma above. The
     quantiles of that mixture are what is written. This collapses the inner
     quantiles onto the checkpoint price at short horizons, exactly where the
@@ -32,11 +32,11 @@ OUTPUT_DIR = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
 TAUS = (0.05, 0.25, 0.5, 0.75, 0.95)
 Z = (-1.644854, -0.67449, 0.0, 0.67449, 1.644854)
 
-WINDOW = 30          # minutes of recent returns used for sigma and flat share
+WINDOW = 45          # minutes of recent returns used for sigma and flat share
 SIGMA_FLOOR = 0.0005  # price units per sqrt(minute)
 SIGMA_CAP = 0.005
 ALPHA = 0.45         # horizon exponent: spread grows as h ** ALPHA
-FLAT_CAP = 0.98      # a market is never treated as more than 98% flat per minute
+FLAT_CAP = 0.99      # a market is never treated as more than 99% flat per minute
 
 _ND = NormalDist()
 
